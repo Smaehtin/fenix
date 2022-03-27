@@ -25,6 +25,7 @@ import org.mozilla.fenix.components.metrics.GleanMetricsService
 import org.mozilla.fenix.components.metrics.MetricController
 import org.mozilla.fenix.experiments.createNimbus
 import org.mozilla.fenix.ext.settings
+import org.mozilla.fenix.gleanplumb.FenixAttributeProvider
 import org.mozilla.fenix.gleanplumb.KeyPairMessageMetadataStorage
 import org.mozilla.fenix.gleanplumb.NimbusMessagingStorage
 import org.mozilla.fenix.nimbus.FxNimbus
@@ -125,6 +126,7 @@ class Analytics(
             metadataStorage = KeyPairMessageMetadataStorage(),
             gleanPlumb = experiments,
             messagingFeature = FxNimbus.features.messaging,
+            attributeProvider = FenixAttributeProvider,
         )
     }
 }

@@ -23,12 +23,13 @@ class NimbusMessagingStorage(
     private val context: Context,
     private val metadataStorage: MessageMetadataStorage,
     private val gleanPlumb: GleanPlumbInterface,
-    private val messagingFeature: FeatureHolder<Messaging>
+    private val messagingFeature: FeatureHolder<Messaging>,
+    private val attributeProvider: FenixAttributeProvider? = null
 ) {
     private val logger = Logger("MessagingStorage")
     private val nimbusFeature = messagingFeature.value()
     private val customAttributes: JSONObject
-        get() = JSONObject()
+        get() = attributeProvider?.getCustomAttributes(context) ?: JSONObject()
 
     /**
      * Returns a list of available messages descending sorted by their priority.
@@ -55,7 +56,7 @@ class NimbusMessagingStorage(
                 triggers = sanitizeTriggers(value.trigger, nimbusTriggers) ?: return@mapNotNull null
             )
         }.filter {
-            it.data.maxDisplayCount >= it.metadata.displayCount &&
+            it.maxDisplayCount >= it.metadata.displayCount &&
                 !it.metadata.dismissed &&
                 !it.metadata.pressed
         }.sortedByDescending {
@@ -67,21 +68,33 @@ class NimbusMessagingStorage(
      * Returns the next higher priority message which all their triggers are true.
      */
     fun getNextMessage(availableMessages: List<Message>): Message? {
+        val jexlCache = HashMap<String, Boolean>()
         val helper = gleanPlumb.createMessageHelper(customAttributes)
-        var message = availableMessages.firstOrNull {
-            isMessageEligible(it, helper)
+        val message = availableMessages.firstOrNull {
+            isMessageEligible(it, helper, jexlCache)
         } ?: return null
 
-        if (isMessageUnderExperiment(message, nimbusFeature.messageUnderExperiment)) {
-            messagingFeature.recordExposure()
-
-            if (message.data.isControl) {
-                message = availableMessages.firstOrNull {
-                    !it.data.isControl && isMessageEligible(it, helper)
-                } ?: return null
-            }
+        // Check this isn't an experimental message. If not, we can go ahead and return it.
+        if (!isMessageUnderExperiment(message, nimbusFeature.messageUnderExperiment)) {
+            return message
         }
-        return message
+        // If the message is under experiment, then we need to record the exposure
+        messagingFeature.recordExposure()
+
+        // If this is an experimental message, but not a placebo, then just return the message.
+        if (!message.data.isControl) {
+            return message
+        }
+
+        // This is a control, so we need to either return the next message (there may not be one)
+        // or not display anything.
+        return when (nimbusFeature.onControl) {
+            ControlMessageBehavior.SHOW_NEXT_MESSAGE -> availableMessages.firstOrNull {
+                // There should only be one control message, and we've just detected it.
+                !it.data.isControl && isMessageEligible(it, helper, jexlCache)
+            }
+            ControlMessageBehavior.SHOW_NONE -> null
+        }
     }
 
     /**
@@ -133,7 +146,7 @@ class NimbusMessagingStorage(
 
     @VisibleForTesting
     internal fun isMessageUnderExperiment(message: Message, expression: String?): Boolean {
-        return when {
+        return message.data.isControl || when {
             expression.isNullOrBlank() -> {
                 false
             }
@@ -149,11 +162,15 @@ class NimbusMessagingStorage(
     @VisibleForTesting
     internal fun isMessageEligible(
         message: Message,
-        helper: GleanPlumbMessageHelper
+        helper: GleanPlumbMessageHelper,
+        jexlCache:HashMap<String, Boolean>
     ): Boolean {
         return message.triggers.all { condition ->
+            jexlCache[condition] ?:
             try {
-                helper.evalJexl(condition)
+                helper.evalJexl(condition).also { result ->
+                    jexlCache[condition] = result
+                }
             } catch (e: NimbusException.EvaluationException) {
                 // Report to glean as malformed message
                 // Will be addressed on https://github.com/mozilla-mobile/fenix/issues/24224
