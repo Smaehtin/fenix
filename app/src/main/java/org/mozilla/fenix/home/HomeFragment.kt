@@ -526,9 +526,19 @@ class HomeFragment : Fragment() {
             } else {
                 removeTabAndShowSnackbar(it)
             }
+
+            homeViewModel.sessionToDelete = null
         }
 
-        homeViewModel.sessionToDelete = null
+        homeViewModel.tabToSelect?.also {
+            requireComponents.useCases.tabsUseCases.selectTab(it)
+
+            findNavController().navigate(
+                HomeFragmentDirections.actionGlobalBrowser(null)
+            )
+
+            homeViewModel.tabToSelect = null
+        }
 
         updateTabCounter(requireComponents.core.store.state)
 
