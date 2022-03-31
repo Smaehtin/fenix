@@ -174,6 +174,10 @@ class DefaultBrowserToolbarController(
         metrics.track(Event.BrowserToolbarHomeButtonClicked)
 
         browserAnimator.captureEngineViewAndDrawStatically {
+            store.state.selectedTabId?.let {
+                homeViewModel.sessionToDelete = it
+            }
+
             navController.navigate(
                 BrowserFragmentDirections.actionGlobalHome()
             )
