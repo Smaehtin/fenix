@@ -91,6 +91,15 @@ android {
 
         if (gradle.hasProperty("localProperties.autosignReleaseWithDebugKey")) {
             signingConfig signingConfigs.debug
+        } else {
+            signingConfigs {
+                config {
+                    keyAlias System.getenv("KEYSTORE_KEY_ALIAS")
+                    keyPassword System.getenv("KEYSTORE_KEY_PASSWORD")
+                    storeFile file(System.getenv("KEYSTORE_FILE") ?: 'keystore/fenix.jks')
+                    storePassword System.getenv("KEYSTORE_PASSWORD")
+                }
+            }
         }
 
         if (gradle.hasProperty("localProperties.debuggable")) {
