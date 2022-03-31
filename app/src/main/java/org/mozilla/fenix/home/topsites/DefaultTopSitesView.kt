@@ -17,12 +17,14 @@ class DefaultTopSitesView(
 ) : TopSitesView {
 
     override fun displayTopSites(topSites: List<TopSite>) {
+        val displayedSites = topSites.filter { it !is TopSite.Frecent }
+
         store.dispatch(
             AppAction.TopSitesChange(
                 if (!settings.showContileFeature) {
-                    topSites
+                    displayedSites
                 } else {
-                    topSites.sort()
+                    displayedSites.sort()
                 }
             )
         )
