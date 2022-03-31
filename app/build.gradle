@@ -77,6 +77,15 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            keyAlias System.getenv("KEYSTORE_KEY_ALIAS")
+            keyPassword System.getenv("KEYSTORE_KEY_PASSWORD")
+            storeFile file(System.getenv("KEYSTORE_FILE") ?: 'keystore/fenix.jks')
+            storePassword System.getenv("KEYSTORE_PASSWORD")
+        }
+    }
+
     def releaseTemplate = {
         // We allow disabling optimization by passing `-PdisableOptimization` to gradle. This is used
         // in automation for UI testing non-debug builds.
@@ -92,14 +101,7 @@ android {
         if (gradle.hasProperty("localProperties.autosignReleaseWithDebugKey")) {
             signingConfig signingConfigs.debug
         } else {
-            signingConfigs {
-                config {
-                    keyAlias System.getenv("KEYSTORE_KEY_ALIAS")
-                    keyPassword System.getenv("KEYSTORE_KEY_PASSWORD")
-                    storeFile file(System.getenv("KEYSTORE_FILE") ?: 'keystore/fenix.jks')
-                    storePassword System.getenv("KEYSTORE_PASSWORD")
-                }
-            }
+            signingConfig signingConfigs.release
         }
 
         if (gradle.hasProperty("localProperties.debuggable")) {
