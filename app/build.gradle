@@ -79,10 +79,14 @@ android {
 
     signingConfigs {
         release {
-            keyAlias System.getenv("KEYSTORE_KEY_ALIAS")
-            keyPassword System.getenv("KEYSTORE_KEY_PASSWORD")
-            storeFile file(System.getenv("KEYSTORE_FILE") ?: 'keystore/fenix.jks')
-            storePassword System.getenv("KEYSTORE_PASSWORD")
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            def keystoreProperties = new Properties()
+            keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
         }
     }
 
