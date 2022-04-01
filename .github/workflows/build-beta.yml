@@ -35,8 +35,10 @@ jobs:
         id: get-asset
         run: |
           APK_PATH=$(find app/build/outputs/apk/beta -type f -name "*.apk")
+          APK_NAME=$(basename $APK_PATH)
           VERSION=$(echo $APK_PATH | sed -r 's/^.*-(.*-.*).apk/\1/')
           echo ::set-output name=apk_path::$APK_PATH
+          echo ::set-output name=apk_name::$APK_NAME
           echo ::set-output name=version::$VERSION
       - name: Create release
         id: create-release
@@ -54,5 +56,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           asset_content_type: application/octet-stream
+          asset_name: ${{ steps.get-asset.outputs.apk_name }}
           asset_path: ${{ steps.get-asset.outputs.apk_path }}
           upload_url: ${{ steps.create-release.outputs.upload_url }}
