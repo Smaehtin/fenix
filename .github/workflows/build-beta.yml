@@ -23,11 +23,12 @@ jobs:
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          mkdir keystore
-          echo $KEYSTORE_FILE | base64 -di > ./keystore/fenix.jks
+          TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
+          mkdir "${TMP_KEYSTORE_FILE_PATH}"
+          echo $KEYSTORE_FILE | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/fenix.jks
           echo keyAlias=$KEYSTORE_KEY_ALIAS >> ./keystore.properties
           echo keyPassword=$KEYSTORE_KEY_PASSWORD >> ./keystore.properties
-          echo storeFile=keystore/fenix.jks >> ./keystore.properties
+          echo storeFile="${TMP_KEYSTORE_FILE_PATH}"/fenix.jks >> ./keystore.properties
       - name: Build
         run: ./gradlew clean app:assembleBeta
       - name: Upload artifact
