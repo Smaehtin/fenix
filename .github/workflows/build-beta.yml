@@ -7,7 +7,7 @@ on:
     - main
 
 jobs:
-  run-build:
+  build:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -23,17 +23,36 @@ jobs:
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
-          mkdir "${TMP_KEYSTORE_FILE_PATH}"
-          echo $KEYSTORE_FILE | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/fenix.jks
+          mkdir keystore
+          echo $KEYSTORE_FILE | base64 -di > ./keystore/fenix.jks
           echo keyAlias=$KEYSTORE_KEY_ALIAS >> ./keystore.properties
           echo keyPassword=$KEYSTORE_KEY_PASSWORD >> ./keystore.properties
-          echo storeFile="${TMP_KEYSTORE_FILE_PATH}"/fenix.jks >> ./keystore.properties
+          echo storeFile=keystore/fenix.jks >> ./keystore.properties
           echo storePassword=$KEYSTORE_PASSWORD >> ./keystore.properties
       - name: Build
         run: ./gradlew clean app:assembleBeta
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
+      - name: Get asset
+        id: get-asset
+        run: |
+          APK_PATH=$(find app/build/outputs -type f -name "*.apk*" | head -n 1)
+          VERSION=$(echo $APK_PATH | sed -r 's/^.*-(.*-.*).apk/\1/')
+          echo ::set-output name=apk_path::$APK_PATH
+          echo ::set-output name=version::$VERSION
+      - name: Create release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: bundles
-          path: app/build/outputs/**/*.apk
+          tag_name: beta-${{ steps.get-asset.outputs.version }}
+          release_name: Beta ${{ steps.get-asset.outputs.version }}
+          draft: true
+          prerelease: true
+      - name: Upload APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_path: ${{ steps.get-asset.outputs.apk_path }}
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
