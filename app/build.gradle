@@ -258,7 +258,7 @@ android.applicationVariants.all { variant ->
     println("Application ID:    " + [variant.mergedFlavor.applicationId, variant.buildType.applicationIdSuffix].findAll().join())
     println("Build type:        " + variant.buildType.name)
     println("Flavor:            " + variant.flavorName)
-    println("Telemetry enabled: " + !isDebug)
+    println("Telemetry enabled: " + !isDebug + " (Force disabled)")
 
     if (useReleaseVersioning) {
         // The Google Play Store does not allow multiple APKs for the same app that all have the
@@ -300,7 +300,7 @@ android.applicationVariants.all { variant ->
     }
 
     if (!isDebug) {
-        buildConfigField 'boolean', 'TELEMETRY', 'true'
+        buildConfigField 'boolean', 'TELEMETRY', 'false'
     } else {
         buildConfigField 'boolean', 'TELEMETRY', 'false'
     }
