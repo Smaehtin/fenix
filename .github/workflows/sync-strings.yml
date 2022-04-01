@@ -12,6 +12,7 @@ jobs:
   main:
     name: "Sync Strings"
     runs-on: ubuntu-20.04
+    if: ${{ false }}
     steps:
       - name: "Discover Fenix Beta Version"
         id: fenix-beta-version
