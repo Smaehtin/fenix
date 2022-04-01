@@ -24,7 +24,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           mkdir keystore
-          echo $KEYSTORE_FILE | base64 -di > "./keystore/fenix.jks
+          echo $KEYSTORE_FILE | base64 -di > ./keystore/fenix.jks
           echo keyAlias=$KEYSTORE_KEY_ALIAS >> ./keystore.properties
           echo keyPassword=$KEYSTORE_KEY_PASSWORD >> ./keystore.properties
           echo storeFile=keystore/fenix.jks >> ./keystore.properties
