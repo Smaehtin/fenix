@@ -29,6 +29,7 @@ jobs:
           echo keyAlias=$KEYSTORE_KEY_ALIAS >> ./keystore.properties
           echo keyPassword=$KEYSTORE_KEY_PASSWORD >> ./keystore.properties
           echo storeFile="${TMP_KEYSTORE_FILE_PATH}"/fenix.jks >> ./keystore.properties
+          echo storePassword=$KEYSTORE_PASSWORD >> ./keystore.properties
       - name: Build
         run: ./gradlew clean app:assembleBeta
       - name: Upload artifact
