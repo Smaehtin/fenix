@@ -45,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: beta-${{ steps.get-asset.outputs.version }}
+          tag_name: beta/${{ steps.get-asset.outputs.version }}
           release_name: Beta ${{ steps.get-asset.outputs.version }}
           draft: false
           prerelease: true
