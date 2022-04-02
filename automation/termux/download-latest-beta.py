@@ -7,6 +7,8 @@ import sys
 def main():
     home = os.getenv('HOME')
 
+    print('Getting latest release asset')
+
     response = requests.get(
         'https://api.github.com/repos/Smaehtin/fenix/releases',
         headers={
@@ -15,8 +17,24 @@ def main():
     )
     data = response.json()
 
-    assets = data[0]['assets']
-    download_url = assets[0]['browser_download_url']
+    asset = data[0]['assets'][0]
+    asset_id = str(asset['id'])
+    asset_name = asset['name']
+
+    print(f'Found release asset, id={asset_id}, name={asset_name}')
+
+    last_asset_id_path = f'{home}/.last_fenix_download_id'
+    last_asset_id = None
+    try:
+        last_asset_id = open(last_asset_id_path, 'r').read()
+    except:
+        pass
+
+    if asset_id == last_asset_id:
+        print('Asset ID matches last downloaded asset, stopping')
+        sys.exit(1)
+
+    download_url = asset['browser_download_url']
 
     file_response = requests.get(download_url)
     if not file_response.ok:
@@ -33,7 +51,6 @@ def main():
         exist_ok=True
     )
     open(destination, 'wb').write(file_response.content)
-
-    os.system(f'termux-share {destination}')
+    open(last_asset_id_path, 'w').write(asset_id)
 
 main()
