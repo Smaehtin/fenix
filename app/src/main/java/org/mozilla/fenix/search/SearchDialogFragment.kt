@@ -66,10 +66,12 @@ import org.mozilla.fenix.components.toolbar.ToolbarPosition
 import org.mozilla.fenix.databinding.FragmentSearchDialogBinding
 import org.mozilla.fenix.databinding.SearchSuggestionsHintBinding
 import org.mozilla.fenix.ext.components
+import org.mozilla.fenix.ext.increaseTapArea
 import org.mozilla.fenix.ext.requireComponents
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.search.awesomebar.AwesomeBarView
 import org.mozilla.fenix.search.awesomebar.toSearchProviderState
+import org.mozilla.fenix.search.toolbar.IncreasedTapAreaActionDecorator
 import org.mozilla.fenix.search.toolbar.ToolbarView
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.widget.VoiceSearchActivity
@@ -82,6 +84,7 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
     private val binding get() = _binding!!
 
     private var voiceSearchButtonAlreadyAdded: Boolean = false
+    private var qrButtonAlreadyAdded = false
     private lateinit var interactor: SearchDialogInteractor
     private lateinit var store: SearchDialogFragmentStore
     private lateinit var toolbarView: ToolbarView
@@ -231,6 +234,8 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val showUnifiedSearchFeature = requireContext().settings().showUnifiedSearchFeature
+
         consumeFlow(requireComponents.core.store) { flow ->
             flow.map { state -> state.search }
                 .ifChanged()
@@ -252,6 +257,9 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
             else -> {}
         }
 
+        binding.searchEnginesShortcutButton.increaseTapArea(TAP_INCREASE_DPS)
+        binding.searchEnginesShortcutButton.isVisible = !showUnifiedSearchFeature
+
         binding.searchEnginesShortcutButton.setOnClickListener {
             interactor.onSearchShortcutsButtonClicked()
         }
@@ -262,7 +270,13 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
             view = view
         )
 
-        binding.qrScanButton.visibility = if (context?.hasCamera() == true) View.VISIBLE else View.GONE
+        binding.qrScanButton.isVisible = when {
+            showUnifiedSearchFeature -> false
+            requireContext().hasCamera() -> true
+            else -> false
+        }
+
+        binding.qrScanButton.increaseTapArea(TAP_INCREASE_DPS)
 
         binding.qrScanButton.setOnClickListener {
             if (!requireContext().hasCamera()) { return@setOnClickListener }
@@ -358,6 +372,9 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
             updateToolbarContentDescription(it.searchEngineSource)
             toolbarView.update(it)
             awesomeBarView.update(it)
+            if (showUnifiedSearchFeature) {
+                addQrButton(it)
+            }
             addVoiceSearchButton(it)
         }
     }
@@ -636,14 +653,16 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
                 requireContext().settings().shouldShowVoiceSearch
 
         if (isVisible) {
-            toolbarView.view.addEditActionEnd(
-                BrowserToolbar.Button(
-                    AppCompatResources.getDrawable(requireContext(), R.drawable.ic_microphone)!!,
-                    requireContext().getString(R.string.voice_search_content_description),
-                    visible = { true },
-                    listener = ::launchVoiceSearch
-                )
+            val voiceSearchAction = BrowserToolbar.Button(
+                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_microphone)!!,
+                requireContext().getString(R.string.voice_search_content_description),
+                visible = { true },
+                listener = ::launchVoiceSearch
             )
+            toolbarView.view.run {
+                addEditActionEnd(IncreasedTapAreaActionDecorator(voiceSearchAction))
+                invalidateActions()
+            }
             voiceSearchButtonAlreadyAdded = true
         }
     }
@@ -663,6 +682,57 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
             putExtra(RecognizerIntent.EXTRA_PROMPT, requireContext().getString(R.string.voice_search_explainer))
         }
         startActivityForResult(speechIntent, VoiceSearchActivity.SPEECH_REQUEST_CODE)
+    }
+
+    private fun addQrButton(searchFragmentState: SearchFragmentState) {
+        if (qrButtonAlreadyAdded) {
+            return
+        }
+
+        val searchEngine = searchFragmentState.searchEngineSource.searchEngine
+
+        val isVisible =
+            searchEngine?.id?.contains("google") == true &&
+                isSpeechAvailable() &&
+                requireContext().settings().shouldShowVoiceSearch
+
+        if (isVisible) {
+            val qrAction = BrowserToolbar.Button(
+                AppCompatResources.getDrawable(requireContext(), R.drawable.ic_qr)!!,
+                requireContext().getString(R.string.search_scan_button),
+                listener = ::launchQr
+            )
+            toolbarView.view.run {
+                addEditActionEnd(IncreasedTapAreaActionDecorator(qrAction))
+                invalidateActions()
+            }
+
+            qrButtonAlreadyAdded = true
+        }
+    }
+
+    private fun launchQr() {
+        if (!requireContext().hasCamera()) {
+            return
+        }
+
+        view?.hideKeyboard()
+        toolbarView.view.clearFocus()
+
+        when {
+            requireContext().settings().shouldShowCameraPermissionPrompt ->
+                qrFeature.get()?.scan(binding.searchWrapper.id)
+            requireContext().isPermissionGranted(Manifest.permission.CAMERA) ->
+                qrFeature.get()?.scan(binding.searchWrapper.id)
+            else -> {
+                interactor.onCameraPermissionsNeeded()
+                resetFocus()
+                view?.hideKeyboard()
+                toolbarView.view.requestFocus()
+            }
+        }
+
+        requireContext().settings().setCameraPermissionNeededState = false
     }
 
     private fun isSpeechAvailable(): Boolean = speechIntent.resolveActivity(requireContext().packageManager) != null
@@ -707,8 +777,12 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
         areShortcutsAvailable: Boolean,
         showShortcuts: Boolean
     ) {
+        val showUnifiedSearchFeature = requireContext().settings().showUnifiedSearchFeature
+
         view?.apply {
-            binding.searchEnginesShortcutButton.isVisible = areShortcutsAvailable
+            binding.searchEnginesShortcutButton.isVisible =
+                !showUnifiedSearchFeature && areShortcutsAvailable
+            binding.pillWrapper.isVisible = !showUnifiedSearchFeature
             binding.searchEnginesShortcutButton.isChecked = showShortcuts
 
             val color = if (showShortcuts) R.attr.textOnColorPrimary else R.attr.textPrimary
@@ -719,6 +793,7 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
     }
 
     companion object {
+        private const val TAP_INCREASE_DPS = 8
         private const val QR_FRAGMENT_TAG = "MOZAC_QR_FRAGMENT"
         private const val REQUEST_CODE_CAMERA_PERMISSIONS = 1
     }
