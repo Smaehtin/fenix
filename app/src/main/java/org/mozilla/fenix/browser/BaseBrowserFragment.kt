@@ -129,10 +129,12 @@ import org.mozilla.fenix.wifi.SitePermissionsWifiIntegration
 import java.lang.ref.WeakReference
 import mozilla.components.feature.session.behavior.EngineViewBrowserToolbarBehavior
 import mozilla.components.feature.webauthn.WebAuthnFeature
+import mozilla.components.service.glean.private.NoExtras
 import mozilla.components.support.base.feature.ActivityResultHandler
 import mozilla.components.support.ktx.android.view.enterToImmersiveMode
 import mozilla.components.support.ktx.kotlin.getOrigin
 import org.mozilla.fenix.GleanMetrics.Downloads
+import org.mozilla.fenix.GleanMetrics.MediaState
 import org.mozilla.fenix.components.toolbar.interactor.BrowserToolbarInteractor
 import org.mozilla.fenix.components.toolbar.interactor.DefaultBrowserToolbarInteractor
 import org.mozilla.fenix.crashes.CrashContentIntegration
@@ -1331,7 +1333,7 @@ abstract class BaseBrowserFragment :
     }
 
     final override fun onPictureInPictureModeChanged(enabled: Boolean) {
-        if (enabled) requireComponents.analytics.metrics.track(Event.MediaPictureInPictureState)
+        if (enabled) MediaState.pictureInPicture.record(NoExtras())
         pipFeature?.onPictureInPictureModeChanged(enabled)
     }
 
@@ -1367,7 +1369,7 @@ abstract class BaseBrowserFragment :
             // Without this, fullscreen has a margin at the top.
             binding.engineView.setVerticalClipping(0)
 
-            requireComponents.analytics.metrics.track(Event.MediaFullscreenState)
+            MediaState.fullscreen.record(NoExtras())
         } else {
             activity?.exitImmersiveModeIfNeeded()
             (activity as? HomeActivity)?.let { activity ->
