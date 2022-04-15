@@ -25,11 +25,6 @@ sealed class Event {
 
     object TabSettingsOpened : Event()
 
-    object ContextMenuCopyTapped : Event()
-    object ContextMenuSearchTapped : Event()
-    object ContextMenuSelectAllTapped : Event()
-    object ContextMenuShareTapped : Event()
-
     object SyncedTabSuggestionClicked : Event()
     object BookmarkSuggestionClicked : Event()
     object ClipboardSuggestionClicked : Event()
@@ -48,33 +43,8 @@ sealed class Event {
     object StartOnHomeEnterHomeScreen : Event()
     object StartOnHomeOpenTabsTray : Event()
 
-    // Recent tabs
-    object ShowAllRecentTabs : Event()
-    object OpenRecentTab : Event()
-    object OpenInProgressMediaTab : Event()
-    object RecentTabsSectionIsVisible : Event()
-    object RecentTabsSectionIsNotVisible : Event()
-
-    // Recent bookmarks
-    object BookmarkClicked : Event()
-    object ShowAllBookmarks : Event()
-    object RecentBookmarksShown : Event()
-    data class RecentBookmarkCount(val count: Int) : Event()
-
     // Recently visited/Recent searches
     object RecentSearchesGroupDeleted : Event()
-
-    // Credit cards
-    object CreditCardSaved : Event()
-    object CreditCardDeleted : Event()
-    object CreditCardModified : Event()
-    object CreditCardFormDetected : Event()
-    object CreditCardAutofilled : Event()
-    object CreditCardAutofillPromptShown : Event()
-    object CreditCardAutofillPromptExpanded : Event()
-    object CreditCardAutofillPromptDismissed : Event()
-    object CreditCardManagementAddTapped : Event()
-    object CreditCardManagementCardTapped : Event()
 
     // Interaction events with extras
 

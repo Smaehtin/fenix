@@ -51,6 +51,8 @@ import org.mozilla.fenix.BrowserDirection
 import org.mozilla.fenix.GleanMetrics.Collections
 import org.mozilla.fenix.GleanMetrics.Events
 import org.mozilla.fenix.GleanMetrics.Pings
+import org.mozilla.fenix.GleanMetrics.RecentTabs
+import org.mozilla.fenix.GleanMetrics.RecentBookmarks
 import org.mozilla.fenix.GleanMetrics.TopSites
 import org.mozilla.fenix.HomeActivity
 import org.mozilla.fenix.R
@@ -1102,37 +1104,36 @@ class DefaultSessionControlControllerTest {
 
     @Test
     fun `WHEN handleReportSessionMetrics is called AND there are zero recent tabs THEN report Event#RecentTabsSectionIsNotVisible`() {
+        assertFalse(RecentTabs.sectionVisible.testHasValue())
+
         every { appState.recentTabs } returns emptyList()
         createController().handleReportSessionMetrics(appState)
-        verify(exactly = 0) {
-            metrics.track(Event.RecentTabsSectionIsVisible)
-        }
-        verify {
-            metrics.track(Event.RecentTabsSectionIsNotVisible)
-        }
+        assertTrue(RecentTabs.sectionVisible.testHasValue())
+        assertFalse(RecentTabs.sectionVisible.testGetValue())
     }
 
     @Test
     fun `WHEN handleReportSessionMetrics is called AND there is at least one recent tab THEN report Event#RecentTabsSectionIsVisible`() {
+        assertFalse(RecentTabs.sectionVisible.testHasValue())
+
         val recentTab: RecentTab = mockk(relaxed = true)
         every { appState.recentTabs } returns listOf(recentTab)
         createController().handleReportSessionMetrics(appState)
-        verify(exactly = 0) {
-            metrics.track(Event.RecentTabsSectionIsNotVisible)
-        }
-        verify {
-            metrics.track(Event.RecentTabsSectionIsVisible)
-        }
+
+        assertTrue(RecentTabs.sectionVisible.testHasValue())
+        assertTrue(RecentTabs.sectionVisible.testGetValue())
     }
 
     @Test
     fun `WHEN handleReportSessionMetrics is called AND there are zero recent bookmarks THEN report Event#RecentBookmarkCount(0)`() {
         every { appState.recentBookmarks } returns emptyList()
         every { appState.recentTabs } returns emptyList()
+        assertFalse(RecentBookmarks.recentBookmarksCount.testHasValue())
+
         createController().handleReportSessionMetrics(appState)
-        verify {
-            metrics.track(Event.RecentBookmarkCount(0))
-        }
+
+        assertTrue(RecentBookmarks.recentBookmarksCount.testHasValue())
+        assertEquals(0, RecentBookmarks.recentBookmarksCount.testGetValue())
     }
 
     @Test
@@ -1140,10 +1141,12 @@ class DefaultSessionControlControllerTest {
         val recentBookmark: RecentBookmark = mockk(relaxed = true)
         every { appState.recentBookmarks } returns listOf(recentBookmark)
         every { appState.recentTabs } returns emptyList()
+        assertFalse(RecentBookmarks.recentBookmarksCount.testHasValue())
+
         createController().handleReportSessionMetrics(appState)
-        verify {
-            metrics.track(Event.RecentBookmarkCount(1))
-        }
+
+        assertTrue(RecentBookmarks.recentBookmarksCount.testHasValue())
+        assertEquals(1, RecentBookmarks.recentBookmarksCount.testGetValue())
     }
 
     @Test

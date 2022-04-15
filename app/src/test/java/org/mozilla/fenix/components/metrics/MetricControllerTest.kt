@@ -13,6 +13,7 @@ import io.mockk.verifyAll
 import mozilla.components.browser.toolbar.facts.ToolbarFacts
 import mozilla.components.feature.autofill.facts.AutofillFacts
 import mozilla.components.feature.awesomebar.facts.AwesomeBarFacts
+import mozilla.components.feature.contextmenu.facts.ContextMenuFacts
 import mozilla.components.feature.customtabs.CustomTabsFacts
 import mozilla.components.feature.media.facts.MediaFacts
 import mozilla.components.feature.prompts.dialog.LoginDialogFacts
@@ -35,9 +36,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mozilla.fenix.GleanMetrics.AndroidAutofill
+import org.mozilla.fenix.GleanMetrics.ContextualMenu
+import org.mozilla.fenix.GleanMetrics.CreditCards
 import org.mozilla.fenix.GleanMetrics.CustomTab
 import org.mozilla.fenix.GleanMetrics.LoginDialog
 import org.mozilla.fenix.GleanMetrics.MediaNotification
+import org.mozilla.fenix.components.metrics.ReleaseMetricController.Companion
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
 import org.mozilla.fenix.utils.Settings
 
@@ -275,107 +279,6 @@ class MetricControllerTest {
     }
 
     @Test
-    fun `credit card fact should trigger event`() {
-        val enabled = true
-        val settings: Settings = mockk(relaxed = true)
-        val controller = ReleaseMetricController(
-            services = listOf(dataService1),
-            isDataTelemetryEnabled = { enabled },
-            isMarketingDataTelemetryEnabled = { enabled },
-            settings
-        )
-
-        var fact = Fact(
-            Component.FEATURE_PROMPTS,
-            Action.INTERACTION,
-            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_FORM_DETECTED
-        )
-
-        var event = controller.factToEvent(fact)
-        assertEquals(event, Event.CreditCardFormDetected)
-
-        fact = Fact(
-            Component.FEATURE_PROMPTS,
-            Action.INTERACTION,
-            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_SUCCESS
-        )
-
-        event = controller.factToEvent(fact)
-        assertEquals(event, Event.CreditCardAutofilled)
-
-        fact = Fact(
-            Component.FEATURE_PROMPTS,
-            Action.INTERACTION,
-            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_SHOWN
-        )
-
-        event = controller.factToEvent(fact)
-        assertEquals(event, Event.CreditCardAutofillPromptShown)
-
-        fact = Fact(
-            Component.FEATURE_PROMPTS,
-            Action.INTERACTION,
-            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_EXPANDED
-        )
-
-        event = controller.factToEvent(fact)
-        assertEquals(event, Event.CreditCardAutofillPromptExpanded)
-
-        fact = Fact(
-            Component.FEATURE_PROMPTS,
-            Action.INTERACTION,
-            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_DISMISSED
-        )
-
-        event = controller.factToEvent(fact)
-        assertEquals(event, Event.CreditCardAutofillPromptDismissed)
-    }
-
-    @Test
-    fun `credit card events should be sent to enabled service`() {
-        val controller = ReleaseMetricController(
-            listOf(dataService1),
-            isDataTelemetryEnabled = { true },
-            isMarketingDataTelemetryEnabled = { true },
-            mockk()
-        )
-        every { dataService1.shouldTrack(Event.CreditCardSaved) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardDeleted) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardModified) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardFormDetected) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardAutofilled) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardAutofillPromptShown) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardAutofillPromptExpanded) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardAutofillPromptDismissed) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardManagementAddTapped) } returns true
-        every { dataService1.shouldTrack(Event.CreditCardManagementCardTapped) } returns true
-
-        controller.start(MetricServiceType.Data)
-
-        controller.track(Event.CreditCardSaved)
-        controller.track(Event.CreditCardDeleted)
-        controller.track(Event.CreditCardModified)
-        controller.track(Event.CreditCardFormDetected)
-        controller.track(Event.CreditCardAutofilled)
-        controller.track(Event.CreditCardAutofillPromptShown)
-        controller.track(Event.CreditCardAutofillPromptExpanded)
-        controller.track(Event.CreditCardAutofillPromptDismissed)
-        controller.track(Event.CreditCardManagementAddTapped)
-        controller.track(Event.CreditCardManagementCardTapped)
-
-        verify { dataService1.track(Event.CreditCardSaved) }
-        verify { dataService1.track(Event.CreditCardDeleted) }
-        verify { dataService1.track(Event.CreditCardModified) }
-        verify { dataService1.track(Event.CreditCardFormDetected) }
-        verify { dataService1.track(Event.CreditCardAutofilled) }
-        verify { dataService1.track(Event.CreditCardAutofillPromptShown) }
-        verify { dataService1.track(Event.CreditCardAutofillPromptExpanded) }
-        verify { dataService1.track(Event.CreditCardAutofillPromptDismissed) }
-        verify { dataService1.track(Event.CreditCardManagementAddTapped) }
-        verify { dataService1.track(Event.CreditCardManagementCardTapped) }
-    }
-
-    @Test
     fun `WHEN changing Fact(component, item) without additional vals to events THEN it returns the right event`() {
         // This naive test was added for a refactoring. It only covers the comparisons that were easy to add.
         val controller = ReleaseMetricController(emptyList(), { true }, { true }, mockk())
@@ -566,6 +469,58 @@ class MetricControllerTest {
             fact.process()
 
             assertTrue(AndroidAutofill.unlockCancelled.testHasValue())
+        }
+    }
+
+    @Test
+    fun `WHEN processing a ContextualMenu fact THEN the right metric is recorded`() {
+        val controller = ReleaseMetricController(emptyList(), { true }, { true }, mockk())
+
+        val longPressItemsToEvents = listOf(
+            Companion.CONTEXT_MENU_COPY to ContextualMenu.copyTapped,
+            Companion.CONTEXT_MENU_SEARCH to ContextualMenu.searchTapped,
+            Companion.CONTEXT_MENU_SELECT_ALL to ContextualMenu.selectAllTapped,
+            Companion.CONTEXT_MENU_SHARE to ContextualMenu.shareTapped,
+        )
+
+        longPressItemsToEvents.forEach { (item, event) ->
+            val fact = Fact(
+                Component.FEATURE_CONTEXTMENU,
+                mockk(),
+                ContextMenuFacts.Items.TEXT_SELECTION_OPTION,
+                metadata = mapOf("textSelectionOption" to item)
+            )
+            with(controller) {
+                fact.process()
+            }
+
+            assertEquals(true, event.testHasValue())
+            assertEquals(1, event.testGetValue().size)
+            assertEquals(null, event.testGetValue().single().extra)
+        }
+    }
+
+    @Test
+    fun `WHEN processing a CreditCardAutofillDialog fact THEN the right metric is recorded`() {
+        val controller = ReleaseMetricController(emptyList(), { true }, { true }, mockk())
+        val action = mockk<Action>(relaxed = true)
+        val itemsToEvents = listOf(
+            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_FORM_DETECTED to CreditCards.formDetected,
+            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_SUCCESS to CreditCards.autofilled,
+            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_SHOWN to CreditCards.autofillPromptShown,
+            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_EXPANDED to CreditCards.autofillPromptExpanded,
+            CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_DISMISSED to CreditCards.autofillPromptDismissed,
+        )
+
+        itemsToEvents.forEach { (item, event) ->
+            val fact = Fact(Component.FEATURE_PROMPTS, action, item)
+            controller.run {
+                fact.process()
+            }
+
+            assertEquals(true, event.testHasValue())
+            assertEquals(1, event.testGetValue().size)
+            assertEquals(null, event.testGetValue().single().extra)
         }
     }
 }

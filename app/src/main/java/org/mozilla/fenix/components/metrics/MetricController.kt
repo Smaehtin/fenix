@@ -38,6 +38,8 @@ import org.mozilla.fenix.BuildConfig
 import org.mozilla.fenix.GleanMetrics.Addons
 import org.mozilla.fenix.GleanMetrics.ContextMenu
 import org.mozilla.fenix.GleanMetrics.AndroidAutofill
+import org.mozilla.fenix.GleanMetrics.ContextualMenu
+import org.mozilla.fenix.GleanMetrics.CreditCards
 import org.mozilla.fenix.GleanMetrics.CustomTab
 import org.mozilla.fenix.GleanMetrics.Events
 import org.mozilla.fenix.GleanMetrics.LoginDialog
@@ -163,6 +165,16 @@ internal class ReleaseMetricController(
             }
             Unit
         }
+        Component.FEATURE_PROMPTS to CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_FORM_DETECTED ->
+            CreditCards.formDetected.record(NoExtras())
+        Component.FEATURE_PROMPTS to CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_SUCCESS ->
+            CreditCards.autofilled.record(NoExtras())
+        Component.FEATURE_PROMPTS to CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_SHOWN ->
+            CreditCards.autofillPromptShown.record(NoExtras())
+        Component.FEATURE_PROMPTS to CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_EXPANDED ->
+            CreditCards.autofillPromptExpanded.record(NoExtras())
+        Component.FEATURE_PROMPTS to CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_DISMISSED ->
+            CreditCards.autofillPromptDismissed.record(NoExtras())
 
         Component.FEATURE_AUTOFILL to AutofillFacts.Items.AUTOFILL_REQUEST -> {
             val hasMatchingLogins = metadata?.get(AutofillFacts.Metadata.HAS_MATCHING_LOGINS) as Boolean?
@@ -191,6 +203,16 @@ internal class ReleaseMetricController(
                 AndroidAutofill.unlockSuccessful.record(NoExtras())
             } else {
                 AndroidAutofill.unlockCancelled.record(NoExtras())
+            }
+        }
+        Component.FEATURE_CONTEXTMENU to ContextMenuFacts.Items.TEXT_SELECTION_OPTION -> {
+            when (metadata?.get("textSelectionOption")?.toString()) {
+                CONTEXT_MENU_COPY -> ContextualMenu.copyTapped.record(NoExtras())
+                CONTEXT_MENU_SEARCH,
+                CONTEXT_MENU_SEARCH_PRIVATELY -> ContextualMenu.searchTapped.record(NoExtras())
+                CONTEXT_MENU_SELECT_ALL -> ContextualMenu.selectAllTapped.record(NoExtras())
+                CONTEXT_MENU_SHARE -> ContextualMenu.shareTapped.record(NoExtras())
+                else -> Unit
             }
         }
 
@@ -260,27 +282,6 @@ internal class ReleaseMetricController(
 
     @Suppress("LongMethod", "MaxLineLength")
     private fun Fact.toEvent(): Event? = when {
-        Component.FEATURE_PROMPTS == component && CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_FORM_DETECTED == item ->
-            Event.CreditCardFormDetected
-        Component.FEATURE_PROMPTS == component && CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_SUCCESS == item ->
-            Event.CreditCardAutofilled
-        Component.FEATURE_PROMPTS == component && CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_SHOWN == item ->
-            Event.CreditCardAutofillPromptShown
-        Component.FEATURE_PROMPTS == component && CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_EXPANDED == item ->
-            Event.CreditCardAutofillPromptExpanded
-        Component.FEATURE_PROMPTS == component && CreditCardAutofillDialogFacts.Items.AUTOFILL_CREDIT_CARD_PROMPT_DISMISSED == item ->
-            Event.CreditCardAutofillPromptDismissed
-
-        Component.FEATURE_CONTEXTMENU == component && ContextMenuFacts.Items.TEXT_SELECTION_OPTION == item -> {
-            when (metadata?.get("textSelectionOption")?.toString()) {
-                CONTEXT_MENU_COPY -> Event.ContextMenuCopyTapped
-                CONTEXT_MENU_SEARCH, CONTEXT_MENU_SEARCH_PRIVATELY -> Event.ContextMenuSearchTapped
-                CONTEXT_MENU_SELECT_ALL -> Event.ContextMenuSelectAllTapped
-                CONTEXT_MENU_SHARE -> Event.ContextMenuShareTapped
-                else -> null
-            }
-        }
-
         Component.SUPPORT_WEBEXTENSIONS == component && WebExtensionFacts.Items.WEB_EXTENSIONS_INITIALIZED == item -> {
             metadata?.get("installed")?.let { installedAddons ->
                 if (installedAddons is List<*>) {
