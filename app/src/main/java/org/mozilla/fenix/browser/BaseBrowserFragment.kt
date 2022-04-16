@@ -627,7 +627,7 @@ abstract class BaseBrowserFragment :
                 creditCardPickerView = binding.creditCardSelectBar,
                 onManageCreditCards = {
                     val directions =
-                        NavGraphDirections.actionGlobalCreditCardsSettingFragment()
+                        NavGraphDirections.actionGlobalAutofillSettingFragment()
                     findNavController().navigate(directions)
                 },
                 onSelectCreditCard = {
