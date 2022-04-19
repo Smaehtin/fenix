@@ -7,24 +7,8 @@ package org.mozilla.fenix.components.metrics
 sealed class Event {
 
     // Interaction Events
-    object OpenedAppFirstRun : Event()
-    object InteractWithSearchURLArea : Event()
-    object DismissedOnboarding : Event()
-    object ClearedPrivateData : Event()
-    object AddBookmark : Event()
     object HistoryHighlightOpened : Event()
     object HistorySearchGroupOpened : Event()
-    object SearchWidgetInstalled : Event()
-
-    object TabSettingsOpened : Event()
-
-    object SyncedTabSuggestionClicked : Event()
-    object BookmarkSuggestionClicked : Event()
-    object ClipboardSuggestionClicked : Event()
-    object HistorySuggestionClicked : Event()
-    object SearchActionClicked : Event()
-    object SearchSuggestionClicked : Event()
-    object OpenedTabSuggestionClicked : Event()
 
     // Interaction events with extras
 

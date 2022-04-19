@@ -65,10 +65,10 @@ import mozilla.components.support.ktx.kotlinx.coroutines.flow.ifAnyChanged
 import mozilla.components.support.ktx.kotlinx.coroutines.flow.ifChanged
 import mozilla.components.ui.autocomplete.InlineAutocompleteEditText
 import org.mozilla.fenix.BrowserDirection
+import org.mozilla.fenix.GleanMetrics.Awesomebar
 import org.mozilla.fenix.GleanMetrics.VoiceSearch
 import org.mozilla.fenix.HomeActivity
 import org.mozilla.fenix.R
-import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.components.toolbar.ToolbarPosition
 import org.mozilla.fenix.databinding.FragmentSearchDialogBinding
 import org.mozilla.fenix.databinding.SearchSuggestionsHintBinding
@@ -161,8 +161,6 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
         _binding = FragmentSearchDialogBinding.inflate(inflater, container, false)
         val activity = requireActivity() as HomeActivity
         val isPrivate = activity.browsingModeManager.mode.isPrivate
-
-        requireComponents.analytics.metrics.track(Event.InteractWithSearchURLArea)
 
         store = SearchDialogFragmentStore(
             createInitialSearchFragmentState(
@@ -319,7 +317,7 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
         }
 
         binding.fillLinkFromClipboard.setOnClickListener {
-            requireComponents.analytics.metrics.track(Event.ClipboardSuggestionClicked)
+            Awesomebar.clipboardSuggestionClicked.record(NoExtras())
             val clipboardUrl = requireContext().components.clipboardHandler.extractURL() ?: ""
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
