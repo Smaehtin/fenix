@@ -1219,8 +1219,7 @@ class HomeFragment : Fragment() {
 
         return shouldEnableWallpaper() && settings.shouldAnimateFirefoxLogo &&
             onboarding.userHasBeenOnboarded() &&
-            settings.numberOfAppLaunches >= 3 &&
-            FeatureFlags.isThemedWallpapersFeatureEnabled(localContext)
+            settings.numberOfAppLaunches >= 3
     }
 
     private fun shouldEnableWallpaper() =
