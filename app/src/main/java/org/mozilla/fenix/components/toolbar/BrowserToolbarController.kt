@@ -25,6 +25,7 @@ import org.mozilla.fenix.browser.BrowserAnimator.Companion.getToolbarNavOptions
 import org.mozilla.fenix.browser.BrowserFragmentDirections
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.browser.readermode.ReaderModeController
+import org.mozilla.fenix.components.components
 import org.mozilla.fenix.components.metrics.MetricController
 import org.mozilla.fenix.components.toolbar.interactor.BrowserToolbarInteractor
 import org.mozilla.fenix.ext.components
@@ -43,6 +44,8 @@ interface BrowserToolbarController {
     fun handleTabCounterClick()
     fun handleTabCounterItemInteraction(item: TabCounterMenu.Item)
     fun handleReaderModePressed(enabled: Boolean)
+    fun handleTabCounterLongPress()
+    fun handleTabCounterMenuItemSwipeUp()
 
     /**
      * @see [BrowserToolbarInteractor.onHomeButtonClicked]
@@ -177,6 +180,34 @@ class DefaultBrowserToolbarController(
         browserAnimator.captureEngineViewAndDrawStatically {
             store.state.selectedTabId?.let {
                 homeViewModel.sessionToDelete = it
+            }
+
+            navController.navigate(
+                BrowserFragmentDirections.actionGlobalHome()
+            )
+        }
+    }
+
+    override fun handleTabCounterLongPress() {
+        navController.navigate(
+            BrowserFragmentDirections.actionGlobalHome(focusOnAddressBar = true)
+        )
+    }
+
+    override fun handleTabCounterMenuItemSwipeUp() {
+        browserAnimator.captureEngineViewAndDrawStatically {
+            store.state.selectedTabId?.let { selectedTab ->
+                homeViewModel.sessionToDelete = selectedTab
+
+                val previousTab = store.state.tabs
+                    .asSequence()
+                    .filter { tab -> tab.id != selectedTab }
+                    .sortedByDescending { tab -> tab.lastAccess }
+                    .firstOrNull()
+
+                previousTab?.let {
+                    homeViewModel.tabToSelect = it.id
+                }
             }
 
             navController.navigate(

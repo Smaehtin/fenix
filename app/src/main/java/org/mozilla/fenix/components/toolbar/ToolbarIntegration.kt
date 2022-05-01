@@ -14,7 +14,6 @@ import mozilla.components.browser.toolbar.BrowserToolbar
 import mozilla.components.browser.toolbar.display.DisplayToolbar
 import mozilla.components.concept.engine.Engine
 import mozilla.components.concept.storage.HistoryStorage
-import mozilla.components.feature.tabs.toolbar.TabCounterToolbarButton
 import mozilla.components.feature.toolbar.ToolbarAutocompleteFeature
 import mozilla.components.feature.toolbar.ToolbarBehaviorController
 import mozilla.components.feature.toolbar.ToolbarFeature
@@ -119,11 +118,17 @@ class DefaultToolbarIntegration(
             it.updateMenu(context.settings().toolbarPosition)
         }
 
-        val tabsAction = TabCounterToolbarButton(
+        val tabsAction = MyTabCounterToolbarButton(
             lifecycleOwner = lifecycleOwner,
             showTabs = {
                 toolbar.hideKeyboard()
                 interactor.onTabCounterClicked()
+            },
+            openNewTab = {
+                interactor.onTabCounterMenuItemLongPressed()
+            },
+            closeTab = {
+                interactor.onTabCounterMenuItemSwipeUp()
             },
             store = store,
             menu = tabCounterMenu
