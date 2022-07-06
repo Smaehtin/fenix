@@ -39,7 +39,7 @@ import org.mozilla.fenix.ui.robots.settingsScreen
 class SettingsPrivacyTest {
     /* ktlint-disable no-blank-line-before-rbrace */ // This imposes unreadable grouping.
 
-    private val mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    private lateinit var mDevice: UiDevice
     private lateinit var mockWebServer: MockWebServer
     private val pageShortcutName = "TestShortcut"
     private val featureSettingsHelper = FeatureSettingsHelper()
@@ -49,6 +49,7 @@ class SettingsPrivacyTest {
 
     @Before
     fun setUp() {
+        mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         mockWebServer = MockWebServer().apply {
             dispatcher = AndroidAssetDispatcher()
             start()
@@ -332,7 +333,6 @@ class SettingsPrivacyTest {
         }
     }
 
-    @Ignore("Failing, see: https://github.com/mozilla-mobile/fenix/issues/24573")
     @Test
     fun openExternalLinksInPrivateTest() {
         val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
@@ -343,6 +343,7 @@ class SettingsPrivacyTest {
         openAppFromExternalLink(firstWebPage.url.toString())
 
         browserScreen {
+            verifyUrl(firstWebPage.url.toString())
         }.openTabDrawer {
             verifyPrivateModeSelected()
         }.closeTabDrawer {
@@ -354,6 +355,7 @@ class SettingsPrivacyTest {
         openAppFromExternalLink(secondWebPage.url.toString())
 
         browserScreen {
+            verifyUrl(secondWebPage.url.toString())
         }.openTabDrawer {
             verifyNormalModeSelected()
         }
