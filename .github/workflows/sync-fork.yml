@@ -8,10 +8,23 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      checks: write
+      contents: write
+      deployments: write
+      id-token: write
+      issues: write
+      metadata: write
+      packages: write
+      pages: write
+      pull-requests: write
+      repository-projects: write
+      security-events: write
+      statuses: write
     steps:
       - uses: tgymnich/fork-sync@v1.6.3
         with:
-          token: ${{ secrets.FORK_SYNC_ACCESS_TOKEN }}
           owner: mozilla-mobile
           base: main
           head: main
