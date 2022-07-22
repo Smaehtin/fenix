@@ -34,7 +34,7 @@ jobs:
           GRADLE_OPTS: -Xmx6144m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
         run: |
           mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
-          ./gradlew clean app:assembleBeta --no-daemon --debug
+          ./gradlew clean app:assembleBeta --no-daemon
       - name: Get asset
         id: get-asset
         run: |
