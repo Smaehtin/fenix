@@ -30,10 +30,9 @@ jobs:
           echo storePassword=$KEYSTORE_PASSWORD >> ./keystore.properties
       - name: Build
         env:
-          JAVA_OPTS: "-Xmx6144m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+          JAVA_OPTS: -Xmx6144m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
         run: |
           mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
-          echo "JAVA_OPTS=-Xmx6144m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> $GITHUB_ENV
           ./gradlew clean app:assembleBeta --no-daemon --debug
       - name: Get asset
         id: get-asset
