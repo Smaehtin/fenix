@@ -30,8 +30,8 @@ jobs:
           echo storePassword=$KEYSTORE_PASSWORD >> ./keystore.properties
       - name: Build
         env:
-          JAVA_OPTS: -Xmx6144m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
-          GRADLE_OPTS: -Xmx6144m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
+          JAVA_OPTS: -Xmx8192m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
+          GRADLE_OPTS: -Xmx8192m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError
         run: |
           mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
           ./gradlew clean app:assembleBeta --no-daemon
