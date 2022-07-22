@@ -31,6 +31,7 @@ jobs:
       - name: Build
         env:
           JAVA_OPTS: -Xmx6144m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          GRADLE_OPTS: -Xmx6144m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
         run: |
           mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
           ./gradlew clean app:assembleBeta --no-daemon --debug
