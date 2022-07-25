@@ -217,10 +217,6 @@ class DefaultBrowserToolbarController(
 
     override fun handleTabCounterMenuItemSwipeDown() {
         tabsUseCases.undo.invoke()
-
-//        navController.navigate(
-//            BrowserFragmentDirections.actionGlobalBrowser(null)
-//        )
     }
 
     companion object {
