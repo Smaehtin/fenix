@@ -29,8 +29,8 @@ open class MyTabCounterToolbarButton(
     private val showTabs: () -> Unit,
     private val openNewTab: () -> Unit,
     private val closeTab: () -> Unit,
+    private val undoCloseTab: () -> Unit,
     private val store: BrowserStore,
-    private val menu: TabCounterMenu? = null
 ) : Toolbar.Action {
 
     private var reference = WeakReference<TabCounter>(null)
@@ -54,6 +54,10 @@ open class MyTabCounterToolbarButton(
 
                 override fun onSwipeTop() {
                     closeTab()
+                }
+
+                override fun onSwipeBottom() {
+                    undoCloseTab()
                 }
 
                 override fun onClick() {

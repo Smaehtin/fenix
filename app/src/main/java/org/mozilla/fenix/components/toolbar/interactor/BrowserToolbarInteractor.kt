@@ -24,6 +24,7 @@ interface BrowserToolbarInteractor {
     fun onReaderModePressed(enabled: Boolean)
     fun onTabCounterMenuItemLongPressed()
     fun onTabCounterMenuItemSwipeUp()
+    fun onTabCounterMenuItemSwipeDown()
 
     /**
      * Navigates to the Home screen. Called when a user taps on the Home button.
@@ -86,5 +87,9 @@ class DefaultBrowserToolbarInteractor(
 
     override fun onTabCounterMenuItemSwipeUp() {
         browserToolbarController.handleTabCounterMenuItemSwipeUp()
+    }
+
+    override fun onTabCounterMenuItemSwipeDown() {
+        browserToolbarController.handleTabCounterMenuItemSwipeDown()
     }
 }

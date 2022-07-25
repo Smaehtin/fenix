@@ -25,6 +25,7 @@ import org.mozilla.fenix.browser.BrowserAnimator.Companion.getToolbarNavOptions
 import org.mozilla.fenix.browser.BrowserFragmentDirections
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.browser.readermode.ReaderModeController
+import org.mozilla.fenix.components.components
 import org.mozilla.fenix.components.toolbar.interactor.BrowserToolbarInteractor
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.nav
@@ -44,6 +45,7 @@ interface BrowserToolbarController {
     fun handleReaderModePressed(enabled: Boolean)
     fun handleTabCounterLongPress()
     fun handleTabCounterMenuItemSwipeUp()
+    fun handleTabCounterMenuItemSwipeDown()
 
     /**
      * @see [BrowserToolbarInteractor.onHomeButtonClicked]
@@ -211,6 +213,14 @@ class DefaultBrowserToolbarController(
                 BrowserFragmentDirections.actionGlobalHome()
             )
         }
+    }
+
+    override fun handleTabCounterMenuItemSwipeDown() {
+        tabsUseCases.undo.invoke()
+
+//        navController.navigate(
+//            BrowserFragmentDirections.actionGlobalBrowser(null)
+//        )
     }
 
     companion object {

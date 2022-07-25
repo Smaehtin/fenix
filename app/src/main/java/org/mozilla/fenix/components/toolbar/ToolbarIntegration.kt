@@ -104,7 +104,7 @@ class DefaultToolbarIntegration(
             DisplayToolbar.Indicators.HIGHLIGHT
         )
 
-        val tabCounterMenu = FenixTabCounterMenu(
+        FenixTabCounterMenu(
             context = context,
             onItemTapped = {
                 interactor.onTabCounterMenuItemTapped(it)
@@ -130,8 +130,10 @@ class DefaultToolbarIntegration(
             closeTab = {
                 interactor.onTabCounterMenuItemSwipeUp()
             },
-            store = store,
-            menu = tabCounterMenu
+            undoCloseTab = {
+              interactor.onTabCounterMenuItemSwipeDown()
+            },
+            store = store
         )
 
         val tabCount = if (isPrivate) {
