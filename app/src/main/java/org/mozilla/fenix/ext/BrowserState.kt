@@ -30,8 +30,10 @@ val maxActiveTime = TimeUnit.DAYS.toMillis(DEFAULT_ACTIVE_DAYS)
  * @return A list of the last opened tab or an empty list.
  */
 fun BrowserState.asRecentTabs(): List<RecentTab> {
-    return mutableListOf<RecentTab>().apply {
-        lastOpenedNormalTab?.let { add(RecentTab.Tab(it)) }
+    return if (lastOpenedNormalTab == null) {
+        mutableListOf()
+    } else {
+        mutableListOf(RecentTab.Tab(lastOpenedNormalTab!!))
     }
 }
 
