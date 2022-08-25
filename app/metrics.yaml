@@ -1840,6 +1840,32 @@ preferences:
       tags:
         - TrackingProtection
         - Settings
+  etp_custom_cookies_selection:
+    type: string
+    description: |
+      The option user has selected in the "Custom" mode of the
+      Enhanced Tracking Protection settings.
+      Possible values:
+      - total-protection for “Isolate cross-site cookies”
+      - social for “Cross-site and social media trackers”
+      - unvisited for “Cookies from unvisited sites”
+      - third-party for “All third-party cookies..”
+      - all for “All cookies..”
+    send_in_pings:
+      - metrics
+    bugs:
+      - https://github.com/mozilla-mobile/fenix/issues/18175
+    data_reviews:
+      - https://github.com/mozilla-mobile/fenix/pull/26449#issuecomment-1225765591
+    data_sensitivity:
+      - interaction
+    notification_emails:
+      - android-probes@mozilla.com
+    expires: 119
+    metadata:
+      tags:
+        - TrackingProtection
+        - Settings
   bookmarks_suggestion:
     type: boolean
     description: |
@@ -7844,6 +7870,8 @@ wallpapers:
     data_sensitivity:
       - interaction
     expires: 114
+    no_lint:
+      - COMMON_PREFIX
     metadata:
       tags:
         - Wallpapers
@@ -7867,50 +7895,8 @@ wallpapers:
     data_sensitivity:
       - interaction
     expires: 114
-    metadata:
-      tags:
-        - Wallpapers
-  wallpaper_switched:
-    type: event
-    description: |
-      The wallpaper was switched by using the homescreen toggle.
-    extra_keys:
-      name:
-        description: The name of the new wallpaper
-        type: string
-      theme_collection:
-        description: The theme collection the new wallpaper belongs to.
-        type: string
-    bugs:
-      - https://github.com/mozilla-mobile/fenix/issues/23381
-    data_reviews:
-      - https://github.com/mozilla-mobile/fenix/pull/23382
-    notification_emails:
-      - android-probes@mozilla.com
-    data_sensitivity:
-      - interaction
-    expires: 114
-    metadata:
-      tags:
-        - Wallpapers
-  change_wallpaper_logo_toggled:
-    type: event
-    description: |
-      A user has toggled the switch that controls the tap-logo-to-change-
-      wallpaper feature.
-    extra_keys:
-      checked:
-        description: Whether the switch is enabled or disabled.
-        type: boolean
-    bugs:
-      - https://github.com/mozilla-mobile/fenix/issues/23381
-    data_reviews:
-      - https://github.com/mozilla-mobile/fenix/pull/23382
-    notification_emails:
-      - android-probes@mozilla.com
-    data_sensitivity:
-      - interaction
-    expires: 114
+    no_lint:
+      - COMMON_PREFIX
     metadata:
       tags:
         - Wallpapers
