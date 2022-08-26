@@ -569,10 +569,18 @@ class Settings(private val appContext: Context) : PreferencesHolder {
     )
 
     val enabledTotalCookieProtection: Boolean
-        get() = FxNimbus.features.engineSettings.value().totalCookieProtectionEnabled
+        get() = mr2022Sections[Mr2022Section.TCP_FEATURE] == true
 
     val enabledTotalCookieProtectionSetting: Boolean
-        get() = mr2022Sections[Mr2022Section.TCP_CFR] == true
+        get() = mr2022Sections[Mr2022Section.TCP_FEATURE] == true
+
+    /**
+     * Indicates if the total cookie protection CRF should be shown.
+     */
+    var shouldShowTotalCookieProtectionCFR by booleanPreference(
+        appContext.getPreferenceKey(R.string.pref_key_should_show_total_cookie_protection_popup),
+        default = mr2022Sections[Mr2022Section.TCP_CFR] == true,
+    )
 
     val blockCookiesSelectionInCustomTrackingProtection by stringPreference(
         key = appContext.getPreferenceKey(R.string.pref_key_tracking_protection_custom_cookies_select),
@@ -780,14 +788,6 @@ class Settings(private val appContext: Context) : PreferencesHolder {
 
     var showSearchSuggestionsInPrivateOnboardingFinished by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_show_search_suggestions_in_private_onboarding),
-        default = false
-    )
-
-    /**
-     * Indicates if the home onboarding dialog has already shown before.
-     */
-    var hasShownHomeOnboardingDialog by booleanPreference(
-        appContext.getPreferenceKey(R.string.pref_key_has_shown_home_onboarding),
         default = false
     )
 
