@@ -8,6 +8,7 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
 import android.view.Gravity
@@ -384,9 +385,10 @@ class HomeFragment : Fragment() {
 
         updateLayout(binding.root)
         sessionControlView = SessionControlView(
-            binding.sessionControlRecyclerView,
-            viewLifecycleOwner,
-            sessionControlInteractor
+            containerView = binding.sessionControlRecyclerView,
+            viewLifecycleOwner = viewLifecycleOwner,
+            interactor = sessionControlInteractor,
+            onboarding = onboarding,
         )
 
         updateSessionControlView()
@@ -432,7 +434,7 @@ class HomeFragment : Fragment() {
             totalSites = settings.topSitesMaxLimit,
             frecencyConfig = TopSitesFrecencyConfig(
                 FrecencyThresholdOption.SKIP_ONE_TIME_PAGES
-            ) { !it.containsQueryParameters(settings.frecencyFilterQuery) },
+            ) { !Uri.parse(it.url).containsQueryParameters(settings.frecencyFilterQuery) },
             providerConfig = TopSitesProviderConfig(
                 showProviderTopSites = settings.showContileFeature,
                 maxThreshold = TOP_SITES_PROVIDER_MAX_THRESHOLD,
