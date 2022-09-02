@@ -121,7 +121,8 @@ import kotlin.math.min
 @Suppress("TooManyFunctions", "LargeClass")
 class HomeFragment : Fragment() {
     private val args by navArgs<HomeFragmentArgs>()
-    private lateinit var bundleArgs: Bundle
+    @VisibleForTesting
+    internal lateinit var bundleArgs: Bundle
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -163,7 +164,7 @@ class HomeFragment : Fragment() {
     private var appBarLayout: AppBarLayout? = null
     private lateinit var currentMode: CurrentMode
     @VisibleForTesting
-    internal lateinit var wallpapersObserver: WallpapersObserver
+    internal var wallpapersObserver: WallpapersObserver? = null
 
     private val topSitesFeature = ViewBoundFeatureWrapper<TopSitesFeature>()
     private val messagingFeature = ViewBoundFeatureWrapper<MessagingFeature>()
@@ -388,7 +389,6 @@ class HomeFragment : Fragment() {
             containerView = binding.sessionControlRecyclerView,
             viewLifecycleOwner = viewLifecycleOwner,
             interactor = sessionControlInteractor,
-            onboarding = onboarding,
         )
 
         updateSessionControlView()
@@ -418,7 +418,7 @@ class HomeFragment : Fragment() {
             // Otherwise the portrait wallpaper may remain shown on landscape,
             // see https://github.com/mozilla-mobile/fenix/issues/26638
             runBlockingIncrement {
-                wallpapersObserver.applyCurrentWallpaper()
+                wallpapersObserver?.applyCurrentWallpaper()
             }
         }
     }
@@ -710,6 +710,7 @@ class HomeFragment : Fragment() {
         _sessionControlInteractor = null
         sessionControlView = null
         appBarLayout = null
+        wallpapersObserver = null
         _binding = null
         bundleArgs.clear()
     }
