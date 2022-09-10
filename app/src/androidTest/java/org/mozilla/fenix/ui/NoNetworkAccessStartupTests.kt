@@ -37,6 +37,7 @@ class NoNetworkAccessStartupTests {
     @Before
     fun setUp() {
         featureSettingsHelper.setTCPCFREnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
     }
 
     @After
@@ -46,10 +47,10 @@ class NoNetworkAccessStartupTests {
         featureSettingsHelper.resetAllFeatureFlags()
     }
 
-    @Test
     // Test running on beta/release builds in CI:
     // caution when making changes to it, so they don't block the builds
     // Based on STR from https://github.com/mozilla-mobile/fenix/issues/16886
+    @Test
     fun noNetworkConnectionStartupTest() {
         setNetworkEnabled(false)
 
@@ -62,8 +63,8 @@ class NoNetworkAccessStartupTests {
         }
     }
 
-    @Test
     // Based on STR from https://github.com/mozilla-mobile/fenix/issues/16886
+    @Test
     fun networkInterruptedFromBrowserToHomeTest() {
         val url = "example.com"
         val settings = InstrumentationRegistry.getInstrumentation().targetContext.settings()
@@ -113,7 +114,7 @@ class NoNetworkAccessStartupTests {
             verifyUrl(
                 "firefox.com",
                 "$packageName:id/mozac_browser_toolbar_url_view",
-                R.id.mozac_browser_toolbar_url_view
+                R.id.mozac_browser_toolbar_url_view,
             )
         }
     }

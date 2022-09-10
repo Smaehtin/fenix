@@ -31,6 +31,7 @@ open class MyTabCounterToolbarButton(
     private val closeTab: () -> Unit,
     private val undoCloseTab: () -> Unit,
     private val store: BrowserStore,
+    private val menu: TabCounterMenu? = null,
 ) : Toolbar.Action {
 
     private var reference = WeakReference<TabCounter>(null)
@@ -47,32 +48,43 @@ open class MyTabCounterToolbarButton(
         val tabCounter = TabCounter(parent.context).apply {
             reference = WeakReference(this)
 
-            setOnTouchListener(object : OnSwipeTouchListener(context) {
-                override fun onLongPress() {
-                    openNewTab()
-                }
+            setOnTouchListener(
+                object : OnSwipeTouchListener(context) {
+                    override fun onLongPress() {
+                        openNewTab()
+                    }
 
-                override fun onSwipeTop() {
-                    closeTab()
-                }
+                    override fun onSwipeTop() {
+                        closeTab()
+                    }
 
-                override fun onSwipeBottom() {
-                    undoCloseTab()
-                }
+                    override fun onSwipeBottom() {
+                        undoCloseTab()
+                    }
 
-                override fun onClick() {
-                    showTabs.invoke()
-                }
-            })
+                    override fun onClick() {
+                        showTabs.invoke()
+                    }
+                },
+            )
 
-            addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View?) {
-                    setCount(getTabCount(store.state))
+            menu?.let { menu ->
+                setOnLongClickListener {
+                    menu.menuController.show(anchor = it)
+                    true
                 }
+            }
 
-                override fun onViewDetachedFromWindow(v: View?) { /* no-op */
-                }
-            })
+            addOnAttachStateChangeListener(
+                object : View.OnAttachStateChangeListener {
+                    override fun onViewAttachedToWindow(v: View?) {
+                        setCount(getTabCount(store.state))
+                    }
+
+                    override fun onViewDetachedFromWindow(v: View?) { /* no-op */
+                    }
+                },
+            )
 
             contentDescription =
                 parent.context.getString(R.string.mozac_feature_tabs_toolbar_tabs_button)
@@ -81,8 +93,8 @@ open class MyTabCounterToolbarButton(
         // Set selectableItemBackgroundBorderless
         tabCounter.setBackgroundResource(
             parent.context.theme.resolveAttribute(
-                android.R.attr.selectableItemBackgroundBorderless
-            )
+                android.R.attr.selectableItemBackgroundBorderless,
+            ),
         )
 
         return tabCounter

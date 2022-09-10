@@ -64,7 +64,7 @@ class DefaultBrowserToolbarController(
     private val customTabSessionId: String?,
     private val browserAnimator: BrowserAnimator,
     private val onTabCounterClicked: () -> Unit,
-    private val onCloseTab: (SessionState) -> Unit
+    private val onCloseTab: (SessionState) -> Unit,
 ) : BrowserToolbarController {
 
     private val currentSession
@@ -75,9 +75,9 @@ class DefaultBrowserToolbarController(
             R.id.browserFragment,
             BrowserFragmentDirections.actionGlobalSearchDialog(
                 sessionId = currentSession?.id,
-                pastedText = text
+                pastedText = text,
             ),
-            getToolbarNavOptions(activity)
+            getToolbarNavOptions(activity),
         )
     }
 
@@ -91,7 +91,7 @@ class DefaultBrowserToolbarController(
         store.updateSearchTermsOfSelectedSession(text)
         activity.components.useCases.searchUseCases.defaultSearch.invoke(
             text,
-            sessionId = store.state.selectedTabId
+            sessionId = store.state.selectedTabId,
         )
     }
 
@@ -104,21 +104,21 @@ class DefaultBrowserToolbarController(
         if (currentSession?.content?.searchTerms.isNullOrBlank()) {
             browserAnimator.captureEngineViewAndDrawStatically {
                 navController.navigate(
-                    BrowserFragmentDirections.actionGlobalHome()
+                    BrowserFragmentDirections.actionGlobalHome(),
                 )
                 navController.navigate(
                     BrowserFragmentDirections.actionGlobalSearchDialog(
-                        currentSession?.id
+                        currentSession?.id,
                     ),
-                    getToolbarNavOptions(activity)
+                    getToolbarNavOptions(activity),
                 )
             }
         } else {
             navController.navigate(
                 BrowserFragmentDirections.actionGlobalSearchDialog(
-                    currentSession?.id
+                    currentSession?.id,
                 ),
-                getToolbarNavOptions(activity)
+                getToolbarNavOptions(activity),
             )
         }
     }
@@ -145,7 +145,7 @@ class DefaultBrowserToolbarController(
                     if (store.state.getNormalOrPrivateTabs(it.content.private).count() == 1) {
                         homeViewModel.sessionToDelete = it.id
                         navController.navigate(
-                            BrowserFragmentDirections.actionGlobalHome()
+                            BrowserFragmentDirections.actionGlobalHome(),
                         )
                     } else {
                         onCloseTab.invoke(it)
@@ -156,13 +156,13 @@ class DefaultBrowserToolbarController(
             is TabCounterMenu.Item.NewTab -> {
                 activity.browsingModeManager.mode = BrowsingMode.Normal
                 navController.navigate(
-                    BrowserFragmentDirections.actionGlobalHome(focusOnAddressBar = true)
+                    BrowserFragmentDirections.actionGlobalHome(focusOnAddressBar = true),
                 )
             }
             is TabCounterMenu.Item.NewPrivateTab -> {
                 activity.browsingModeManager.mode = BrowsingMode.Private
                 navController.navigate(
-                    BrowserFragmentDirections.actionGlobalHome(focusOnAddressBar = true)
+                    BrowserFragmentDirections.actionGlobalHome(focusOnAddressBar = true),
                 )
             }
         }
@@ -182,7 +182,7 @@ class DefaultBrowserToolbarController(
             }
 
             navController.navigate(
-                BrowserFragmentDirections.actionGlobalHome()
+                BrowserFragmentDirections.actionGlobalHome(),
             )
         }
     }
@@ -225,14 +225,14 @@ class DefaultBrowserToolbarController(
 }
 
 private fun BrowserStore.updateSearchTermsOfSelectedSession(
-    searchTerms: String
+    searchTerms: String,
 ) {
     val selectedTabId = state.selectedTabId ?: return
 
     dispatch(
         ContentAction.UpdateSearchTermsAction(
             selectedTabId,
-            searchTerms
-        )
+            searchTerms,
+        ),
     )
 }

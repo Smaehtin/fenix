@@ -44,6 +44,7 @@ class SettingsHomepageTest {
         }
         featureSettingsHelper.setJumpBackCFREnabled(false)
         featureSettingsHelper.setTCPCFREnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
     }
 
     @After
@@ -150,7 +151,7 @@ class SettingsHomepageTest {
         val wallpapers = listOf(
             "Wallpaper Item: amethyst",
             "Wallpaper Item: cerulean",
-            "Wallpaper Item: sunrise"
+            "Wallpaper Item: sunrise",
         )
 
         for (wallpaper in wallpapers) {

@@ -54,7 +54,7 @@ class SearchTest {
     @get:Rule
     val activityTestRule = AndroidComposeTestRule(
         HomeActivityTestRule(),
-        { it.activity }
+        { it.activity },
     )
 
     @Before
@@ -66,6 +66,7 @@ class SearchTest {
         featureSettingsHelper.setJumpBackCFREnabled(false)
         featureSettingsHelper.setTCPCFREnabled(false)
         featureSettingsHelper.setPocketEnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
     }
 
     @After
@@ -184,7 +185,7 @@ class SearchTest {
         val customSearchEngine = createSearchEngine(
             name = "TestSearchEngine",
             url = searchString,
-            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap
+            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap,
         )
         setCustomSearchEngine(customSearchEngine)
 
@@ -219,7 +220,7 @@ class SearchTest {
         val customSearchEngine = createSearchEngine(
             name = "TestSearchEngine",
             url = searchString,
-            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap
+            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap,
         )
         setCustomSearchEngine(customSearchEngine)
 
@@ -250,7 +251,7 @@ class SearchTest {
         val customSearchEngine = createSearchEngine(
             name = "TestSearchEngine",
             url = searchString,
-            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap
+            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap,
         )
         setCustomSearchEngine(customSearchEngine)
 
@@ -288,7 +289,7 @@ class SearchTest {
         val customSearchEngine = createSearchEngine(
             name = "TestSearchEngine",
             url = searchString,
-            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap
+            icon = DefaultIconGenerator().generate(appContext, IconRequest(searchString)).bitmap,
         )
         setCustomSearchEngine(customSearchEngine)
 

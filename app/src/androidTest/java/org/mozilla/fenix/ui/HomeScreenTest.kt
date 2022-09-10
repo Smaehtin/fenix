@@ -150,6 +150,7 @@ class HomeScreenTest {
     @Test
     fun dismissOnboardingUsingHelpTest() {
         featureSettingsHelper.setJumpBackCFREnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
 
         homeScreen {
             verifyWelcomeHeader()
@@ -198,6 +199,7 @@ class HomeScreenTest {
     fun verifyCustomizeHomepageTest() {
         val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
         featureSettingsHelper.setJumpBackCFREnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
 
         navigationToolbar {
         }.enterURLAndEnterToBrowser(defaultWebPage.url) {

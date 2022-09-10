@@ -7,7 +7,6 @@ package org.mozilla.fenix.settings.wallpaper
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -91,13 +90,13 @@ fun WallpaperSettings(
             WallpaperThumbnails(
                 wallpapers = wallpapers,
                 defaultWallpaper = defaultWallpaper,
-                loadWallpaperResource = loadWallpaperResource,
                 selectedWallpaper = selectedWallpaper,
+                loadWallpaperResource = loadWallpaperResource,
                 onSelectWallpaper = { updatedWallpaper ->
                     coroutineScope.launch {
                         scaffoldState.snackbarHostState.showSnackbar(
                             message = "", // overwritten by WallpaperSnackbar
-                            duration = SnackbarDuration.Short
+                            duration = SnackbarDuration.Short,
                         )
                     }
                     onSelectWallpaper(updatedWallpaper)
@@ -124,7 +123,7 @@ private fun WallpaperSnackbar(
                 color = FirefoxTheme.colors.textOnColorPrimary,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
-                style = FirefoxTheme.typography.headline7
+                style = FirefoxTheme.typography.headline7,
             )
         },
         action = {
@@ -147,19 +146,27 @@ private fun WallpaperSnackbar(
  * @param selectedWallpaper The currently selected wallpaper.
  * @param numColumns The number of columns that will occupy the grid.
  * @param onSelectWallpaper Action to take when a new wallpaper is selected.
+ * @param verticalPadding Vertical content padding inside the block.
+ * @param horizontalPadding Horizontal content padding inside the block.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Suppress("LongParameterList")
-private fun WallpaperThumbnails(
+fun WallpaperThumbnails(
     wallpapers: List<Wallpaper>,
     defaultWallpaper: Wallpaper,
-    loadWallpaperResource: suspend (Wallpaper) -> Bitmap?,
     selectedWallpaper: Wallpaper,
-    numColumns: Int = 3,
+    loadWallpaperResource: suspend (Wallpaper) -> Bitmap?,
     onSelectWallpaper: (Wallpaper) -> Unit,
+    numColumns: Int = 3,
+    verticalPadding: Int = 30,
+    horizontalPadding: Int = 20,
 ) {
-    Column(modifier = Modifier.padding(vertical = 30.dp, horizontal = 20.dp)) {
+    Column(
+        modifier = Modifier.padding(
+            vertical = verticalPadding.dp,
+            horizontal = horizontalPadding.dp,
+        ),
+    ) {
         val numRows = (wallpapers.size + numColumns - 1) / numColumns
         for (rowIndex in 0 until numRows) {
             Row {
@@ -167,14 +174,16 @@ private fun WallpaperThumbnails(
                     val itemIndex = rowIndex * numColumns + columnIndex
                     if (itemIndex < wallpapers.size) {
                         Box(
-                            modifier = Modifier.weight(1f, fill = true).padding(4.dp),
+                            modifier = Modifier
+                                .weight(1f, fill = true)
+                                .padding(4.dp),
                         ) {
                             WallpaperThumbnailItem(
                                 wallpaper = wallpapers[itemIndex],
                                 defaultWallpaper = defaultWallpaper,
                                 loadWallpaperResource = loadWallpaperResource,
                                 isSelected = selectedWallpaper == wallpapers[itemIndex],
-                                onSelect = onSelectWallpaper
+                                onSelect = onSelectWallpaper,
                             )
                         }
                     } else {
@@ -202,7 +211,7 @@ private fun WallpaperThumbnailItem(
     loadWallpaperResource: suspend (Wallpaper) -> Bitmap?,
     isSelected: Boolean,
     aspectRatio: Float = 1.1f,
-    onSelect: (Wallpaper) -> Unit
+    onSelect: (Wallpaper) -> Unit,
 ) {
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
     LaunchedEffect(LocalConfiguration.current.orientation) {
@@ -212,7 +221,7 @@ private fun WallpaperThumbnailItem(
     val border = if (isSelected) {
         Modifier.border(
             BorderStroke(width = 2.dp, color = FirefoxTheme.colors.borderAccent),
-            thumbnailShape
+            thumbnailShape,
         )
     } else {
         Modifier
@@ -229,14 +238,15 @@ private fun WallpaperThumbnailItem(
             .fillMaxWidth()
             .aspectRatio(aspectRatio)
             .then(border)
-            .clickable { onSelect(wallpaper) }
+            .clickable { onSelect(wallpaper) },
     ) {
         bitmap?.let {
             Image(
                 bitmap = it.asImageBitmap(),
                 contentScale = ContentScale.FillBounds,
                 contentDescription = stringResource(
-                    R.string.wallpapers_item_name_content_description, wallpaper.name
+                    R.string.wallpapers_item_name_content_description,
+                    wallpaper.name,
                 ),
                 modifier = Modifier.fillMaxSize(),
             )
@@ -248,7 +258,6 @@ private fun WallpaperThumbnailItem(
 @Composable
 private fun WallpaperThumbnailsPreview() {
     FirefoxTheme(theme = Theme.getTheme()) {
-
         WallpaperSettings(
             defaultWallpaper = Wallpaper.Default,
             loadWallpaperResource = { null },
@@ -265,7 +274,7 @@ private fun WallpaperThumbnailsPreview() {
 private fun WallpaperSnackbarPreview() {
     FirefoxTheme(theme = Theme.getTheme()) {
         WallpaperSnackbar(
-            onViewWallpaper = {}
+            onViewWallpaper = {},
         )
     }
 }

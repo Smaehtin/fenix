@@ -28,13 +28,14 @@ class CrashReportingTest {
     @get:Rule
     val activityTestRule = AndroidComposeTestRule(
         HomeActivityIntentTestRule(),
-        { it.activity }
+        { it.activity },
     )
 
     @Before
     fun setUp() {
         featureSettingsHelper.setJumpBackCFREnabled(false)
         featureSettingsHelper.setPocketEnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
 
         mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         mockWebServer = MockWebServer().apply {

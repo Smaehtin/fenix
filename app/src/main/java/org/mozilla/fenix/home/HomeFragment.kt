@@ -115,12 +115,14 @@ import org.mozilla.fenix.tabstray.TabsTrayAccessPoint
 import org.mozilla.fenix.utils.Settings.Companion.TOP_SITES_PROVIDER_MAX_THRESHOLD
 import org.mozilla.fenix.utils.ToolbarPopupWindow
 import org.mozilla.fenix.utils.allowUndo
+import org.mozilla.fenix.wallpapers.WallpaperManager
 import java.lang.ref.WeakReference
 import kotlin.math.min
 
 @Suppress("TooManyFunctions", "LargeClass")
 class HomeFragment : Fragment() {
     private val args by navArgs<HomeFragmentArgs>()
+
     @VisibleForTesting
     internal lateinit var bundleArgs: Bundle
 
@@ -163,6 +165,7 @@ class HomeFragment : Fragment() {
     private var sessionControlView: SessionControlView? = null
     private var appBarLayout: AppBarLayout? = null
     private lateinit var currentMode: CurrentMode
+
     @VisibleForTesting
     internal var wallpapersObserver: WallpapersObserver? = null
 
@@ -193,7 +196,9 @@ class HomeFragment : Fragment() {
 
         // DO NOT MOVE ANYTHING BELOW THIS addMarker CALL!
         requireComponents.core.engine.profiler?.addMarker(
-            MarkersFragmentLifecycleCallbacks.MARKER_NAME, profilerStartTime, "HomeFragment.onCreate",
+            MarkersFragmentLifecycleCallbacks.MARKER_NAME,
+            profilerStartTime,
+            "HomeFragment.onCreate",
         )
     }
 
@@ -201,7 +206,7 @@ class HomeFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         // DO NOT ADD ANYTHING ABOVE THIS getProfilerTime CALL!
         val profilerStartTime = requireComponents.core.engine.profiler?.getProfilerTime()
@@ -213,6 +218,7 @@ class HomeFragment : Fragment() {
         if (shouldEnableWallpaper()) {
             wallpapersObserver = WallpapersObserver(
                 appStore = components.appStore,
+                settings = requireContext().settings(),
                 wallpapersUseCases = components.useCases.wallpaperUseCases,
                 wallpaperImageView = binding.wallpaperImageView,
             ).also {
@@ -224,7 +230,7 @@ class HomeFragment : Fragment() {
             requireContext(),
             onboarding,
             browsingModeManager,
-            ::dispatchModeChanges
+            ::dispatchModeChanges,
         )
 
         components.appStore.dispatch(AppAction.ModeChange(currentMode.getCurrentMode()))
@@ -240,8 +246,8 @@ class HomeFragment : Fragment() {
                 if (requireContext().settings().showPocketSponsoredStories) {
                     components.appStore.dispatch(
                         AppAction.PocketSponsoredStoriesChange(
-                            components.core.pocketStoriesService.getSponsoredStories()
-                        )
+                            components.core.pocketStoriesService.getSponsoredStories(),
+                        ),
                     )
                 }
             } else {
@@ -255,7 +261,7 @@ class HomeFragment : Fragment() {
                     store = requireComponents.appStore,
                 ),
                 owner = viewLifecycleOwner,
-                view = binding.root
+                view = binding.root,
             )
         }
 
@@ -264,13 +270,13 @@ class HomeFragment : Fragment() {
                 feature = TopSitesFeature(
                     view = DefaultTopSitesView(
                         store = components.appStore,
-                        settings = components.settings
+                        settings = components.settings,
                     ),
                     storage = components.core.topSitesStorage,
-                    config = ::getTopSitesConfig
+                    config = ::getTopSitesConfig,
                 ),
                 owner = viewLifecycleOwner,
-                view = binding.root
+                view = binding.root,
             )
         }
 
@@ -278,10 +284,10 @@ class HomeFragment : Fragment() {
             recentTabsListFeature.set(
                 feature = RecentTabsListFeature(
                     browserStore = components.core.store,
-                    appStore = components.appStore
+                    appStore = components.appStore,
                 ),
                 owner = viewLifecycleOwner,
-                view = binding.root
+                view = binding.root,
             )
 
             if (requireContext().settings().enableTaskContinuityEnhancements) {
@@ -296,7 +302,7 @@ class HomeFragment : Fragment() {
                         coroutineScope = viewLifecycleOwner.lifecycleScope,
                     ),
                     owner = viewLifecycleOwner,
-                    view = binding.root
+                    view = binding.root,
                 )
             }
         }
@@ -308,10 +314,10 @@ class HomeFragment : Fragment() {
                     bookmarksUseCase = run {
                         requireContext().components.useCases.bookmarksUseCases
                     },
-                    scope = viewLifecycleOwner.lifecycleScope
+                    scope = viewLifecycleOwner.lifecycleScope,
                 ),
                 owner = viewLifecycleOwner,
-                view = binding.root
+                view = binding.root,
             )
         }
 
@@ -321,10 +327,10 @@ class HomeFragment : Fragment() {
                     appStore = components.appStore,
                     historyMetadataStorage = components.core.historyStorage,
                     historyHighlightsStorage = components.core.lazyHistoryStorage,
-                    scope = viewLifecycleOwner.lifecycleScope
+                    scope = viewLifecycleOwner.lifecycleScope,
                 ),
                 owner = viewLifecycleOwner,
-                view = binding.root
+                view = binding.root,
             )
         }
 
@@ -350,7 +356,7 @@ class HomeFragment : Fragment() {
                 hideOnboarding = ::hideOnboardingAndOpenSearch,
                 registerCollectionStorageObserver = ::registerCollectionStorageObserver,
                 removeCollectionWithUndo = ::removeCollectionWithUndo,
-                showTabTray = ::openTabsTray
+                showTabTray = ::openTabsTray,
             ),
             recentTabController = DefaultRecentTabsController(
                 selectTabUseCase = components.useCases.tabsUseCases.selectTab,
@@ -381,7 +387,7 @@ class HomeFragment : Fragment() {
                 homeActivity = activity,
                 appStore = components.appStore,
                 navController = findNavController(),
-            )
+            ),
         )
 
         updateLayout(binding.root)
@@ -401,7 +407,9 @@ class HomeFragment : Fragment() {
 
         // DO NOT MOVE ANYTHING BELOW THIS addMarker CALL!
         requireComponents.core.engine.profiler?.addMarker(
-            MarkersFragmentLifecycleCallbacks.MARKER_NAME, profilerStartTime, "HomeFragment.onCreateView",
+            MarkersFragmentLifecycleCallbacks.MARKER_NAME,
+            profilerStartTime,
+            "HomeFragment.onCreateView",
         )
         return binding.root
     }
@@ -411,8 +419,8 @@ class HomeFragment : Fragment() {
 
         getMenuButton()?.dismissMenu()
 
-        if (shouldEnableWallpaper()) {
-            // Setting the wallpaper is a potentially expensive operation - can take 100ms.
+        val isDefaultTheCurrentWallpaper = WallpaperManager.isDefaultTheCurrentWallpaper(requireContext().settings())
+        if (shouldEnableWallpaper() && !isDefaultTheCurrentWallpaper) {
             // Running this on the Main thread helps to ensure that the just updated configuration
             // will be used when the wallpaper is scaled to match.
             // Otherwise the portrait wallpaper may remain shown on landscape,
@@ -433,7 +441,7 @@ class HomeFragment : Fragment() {
         return TopSitesConfig(
             totalSites = settings.topSitesMaxLimit,
             frecencyConfig = TopSitesFrecencyConfig(
-                FrecencyThresholdOption.SKIP_ONE_TIME_PAGES
+                FrecencyThresholdOption.SKIP_ONE_TIME_PAGES,
             ) { !Uri.parse(it.url).containsQueryParameters(settings.frecencyFilterQuery) },
             providerConfig = TopSitesProviderConfig(
                 showProviderTopSites = settings.showContileFeature,
@@ -444,8 +452,8 @@ class HomeFragment : Fragment() {
                         EBAY_SPONSORED_TITLE -> topSite.title != EBAY_SPONSORED_TITLE
                         else -> true
                     }
-                }
-            )
+                },
+            ),
         )
     }
 
@@ -474,7 +482,7 @@ class HomeFragment : Fragment() {
             ToolbarPosition.TOP -> {
                 binding.toolbarLayout.layoutParams = CoordinatorLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.MATCH_PARENT,
-                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT,
                 ).apply {
                     gravity = Gravity.TOP
                 }
@@ -491,7 +499,7 @@ class HomeFragment : Fragment() {
 
                 binding.bottomBar.background = AppCompatResources.getDrawable(
                     view.context,
-                    view.context.theme.resolveAttribute(R.attr.bottomBarBackgroundTop)
+                    view.context.theme.resolveAttribute(R.attr.bottomBarBackgroundTop),
                 )
 
                 binding.homeAppBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -544,7 +552,7 @@ class HomeFragment : Fragment() {
                 WeakReference(it),
                 handlePasteAndGo = sessionControlInteractor::onPasteAndGo,
                 handlePaste = sessionControlInteractor::onPaste,
-                copyVisible = false
+                copyVisible = false,
             )
             true
         }
@@ -552,7 +560,7 @@ class HomeFragment : Fragment() {
         PrivateBrowsingButtonView(binding.privateBrowsingButton, browsingModeManager) { newMode ->
             sessionControlInteractor.onPrivateModeButtonClicked(
                 newMode,
-                onboarding.userHasBeenOnboarded()
+                onboarding.userHasBeenOnboarded(),
             )
         }
 
@@ -609,7 +617,9 @@ class HomeFragment : Fragment() {
 
         // DO NOT MOVE ANYTHING BELOW THIS addMarker CALL!
         requireComponents.core.engine.profiler?.addMarker(
-            MarkersFragmentLifecycleCallbacks.MARKER_NAME, profilerStartTime, "HomeFragment.onViewCreated",
+            MarkersFragmentLifecycleCallbacks.MARKER_NAME,
+            profilerStartTime,
+            "HomeFragment.onViewCreated",
         )
     }
 
@@ -674,7 +684,7 @@ class HomeFragment : Fragment() {
                 requireComponents.useCases.tabsUseCases.undo.invoke()
             },
             operation = { },
-            anchorView = snackbarAnchorView
+            anchorView = snackbarAnchorView,
         )
     }
 
@@ -696,11 +706,11 @@ class HomeFragment : Fragment() {
             {
                 requireComponents.useCases.tabsUseCases.undo.invoke()
                 findNavController().navigate(
-                    HomeFragmentDirections.actionGlobalBrowser(null)
+                    HomeFragmentDirections.actionGlobalBrowser(null),
                 )
             },
             operation = { },
-            anchorView = snackbarAnchorView
+            anchorView = snackbarAnchorView,
         )
     }
 
@@ -730,7 +740,7 @@ class HomeFragment : Fragment() {
 
             requireComponents.backgroundServices.accountManager.register(
                 currentMode,
-                owner = this@HomeFragment.viewLifecycleOwner
+                owner = this@HomeFragment.viewLifecycleOwner,
             )
             requireComponents.backgroundServices.accountManager.register(
                 object : AccountObserver {
@@ -740,7 +750,7 @@ class HomeFragment : Fragment() {
                                 FenixSnackbar.make(
                                     view = it,
                                     duration = Snackbar.LENGTH_SHORT,
-                                    isDisplayedWithBrowserToolbar = false
+                                    isDisplayedWithBrowserToolbar = false,
                                 )
                                     .setText(it.context.getString(R.string.onboarding_firefox_account_sync_is_on))
                                     .setAnchorView(binding.toolbarLayout)
@@ -749,7 +759,7 @@ class HomeFragment : Fragment() {
                         }
                     }
                 },
-                owner = this@HomeFragment.viewLifecycleOwner
+                owner = this@HomeFragment.viewLifecycleOwner,
             )
         }
 
@@ -766,6 +776,13 @@ class HomeFragment : Fragment() {
 
         lifecycleScope.launch(IO) {
             requireComponents.reviewPromptController.promptReview(requireActivity())
+        }
+
+        val isDefaultTheCurrentWallpaper = WallpaperManager.isDefaultTheCurrentWallpaper(requireContext().settings())
+        if (shouldEnableWallpaper() && !isDefaultTheCurrentWallpaper) {
+            runBlockingIncrement {
+                wallpapersObserver?.applyCurrentWallpaper()
+            }
         }
     }
 
@@ -788,7 +805,7 @@ class HomeFragment : Fragment() {
             },
             operation = { },
             elevation = TOAST_ELEVATION,
-            anchorView = null
+            anchorView = null,
         )
 
         lifecycleScope.launch(IO) {
@@ -819,9 +836,9 @@ class HomeFragment : Fragment() {
                 ColorDrawable(
                     ContextCompat.getColor(
                         requireContext(),
-                        R.color.fx_mobile_private_layer_color_1
-                    )
-                )
+                        R.color.fx_mobile_private_layer_color_1,
+                    ),
+                ),
             )
         }
 
@@ -840,10 +857,10 @@ class HomeFragment : Fragment() {
                     layout,
                     min(
                         (resources.displayMetrics.widthPixels / CFR_WIDTH_DIVIDER).toInt(),
-                        (resources.displayMetrics.heightPixels / CFR_WIDTH_DIVIDER).toInt()
+                        (resources.displayMetrics.heightPixels / CFR_WIDTH_DIVIDER).toInt(),
                     ),
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                    true
+                    true,
                 )
             layout.findViewById<Button>(R.id.cfr_pos_button).apply {
                 setOnClickListener {
@@ -863,7 +880,10 @@ class HomeFragment : Fragment() {
                     context.settings().showedPrivateModeContextualFeatureRecommender = true
                     context.settings().lastCfrShownTimeInMillis = System.currentTimeMillis()
                     privateBrowsingRecommend.showAsDropDown(
-                        binding.privateBrowsingButton, 0, CFR_Y_OFFSET, Gravity.TOP or Gravity.END
+                        binding.privateBrowsingButton,
+                        0,
+                        CFR_Y_OFFSET,
+                        Gravity.TOP or Gravity.END,
                     )
                 }
             }
@@ -875,8 +895,8 @@ class HomeFragment : Fragment() {
             onboarding.finish()
             requireContext().components.appStore.dispatch(
                 AppAction.ModeChange(
-                    mode = currentMode.getCurrentMode()
-                )
+                    mode = currentMode.getCurrentMode(),
+                ),
             )
         }
     }
@@ -891,7 +911,7 @@ class HomeFragment : Fragment() {
     internal fun navigateToSearch() {
         val directions =
             HomeFragmentDirections.actionGlobalSearchDialog(
-                sessionId = null
+                sessionId = null,
             )
 
         nav(R.id.homeFragment, directions, getToolbarNavOptions(requireContext()))
@@ -918,7 +938,7 @@ class HomeFragment : Fragment() {
             FenixSnackbar.make(
                 view = view,
                 duration = Snackbar.LENGTH_LONG,
-                isDisplayedWithBrowserToolbar = false
+                isDisplayedWithBrowserToolbar = false,
             )
                 .setText(string)
                 .setAnchorView(snackbarAnchorView)
@@ -929,7 +949,7 @@ class HomeFragment : Fragment() {
     private fun openTabsTray() {
         findNavController().nav(
             R.id.homeFragment,
-            HomeFragmentDirections.actionGlobalTabsTrayFragment()
+            HomeFragmentDirections.actionGlobalTabsTrayFragment(),
         )
     }
 
