@@ -31,7 +31,6 @@ open class MyTabCounterToolbarButton(
     private val closeTab: () -> Unit,
     private val undoCloseTab: () -> Unit,
     private val store: BrowserStore,
-    private val menu: TabCounterMenu? = null,
 ) : Toolbar.Action {
 
     private var reference = WeakReference<TabCounter>(null)
@@ -67,13 +66,6 @@ open class MyTabCounterToolbarButton(
                     }
                 },
             )
-
-            menu?.let { menu ->
-                setOnLongClickListener {
-                    menu.menuController.show(anchor = it)
-                    true
-                }
-            }
 
             addOnAttachStateChangeListener(
                 object : View.OnAttachStateChangeListener {
