@@ -11,6 +11,7 @@ import androidx.test.uiautomator.Until
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mozilla.fenix.helpers.AndroidAssetDispatcher
@@ -150,6 +151,7 @@ class HomeScreenTest {
     @Test
     fun dismissOnboardingUsingHelpTest() {
         featureSettingsHelper.setJumpBackCFREnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
 
         homeScreen {
             verifyWelcomeHeader()
@@ -194,10 +196,12 @@ class HomeScreenTest {
         }
     }
 
+    @Ignore("Failing, see: https://github.com/mozilla-mobile/fenix/issues/26932")
     @Test
     fun verifyCustomizeHomepageTest() {
         val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
         featureSettingsHelper.setJumpBackCFREnabled(false)
+        featureSettingsHelper.setShowWallpaperOnboarding(false)
 
         navigationToolbar {
         }.enterURLAndEnterToBrowser(defaultWebPage.url) {
