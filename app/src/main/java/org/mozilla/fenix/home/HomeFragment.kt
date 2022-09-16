@@ -708,6 +708,7 @@ class HomeFragment : Fragment() {
         appBarLayout = null
         _binding = null
         bundleArgs.clear()
+        lastAppliedWallpaperName = Wallpaper.defaultName
     }
 
     override fun onStart() {
