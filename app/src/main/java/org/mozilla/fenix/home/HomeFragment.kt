@@ -955,7 +955,7 @@ class HomeFragment : Fragment() {
         when {
             !shouldEnableWallpaper() ||
                 (wallpaperName == lastAppliedWallpaperName && !orientationChange) -> return
-            wallpaperName == Wallpaper.defaultName -> {
+            Wallpaper.nameIsDefault(wallpaperName) -> {
                 binding.wallpaperImageView.isVisible = false
                 lastAppliedWallpaperName = wallpaperName
             }
