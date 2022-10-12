@@ -53,6 +53,7 @@ interface BrowserToolbarController {
     fun handleHomeButtonClick()
 }
 
+@Suppress("LongParameterList")
 class DefaultBrowserToolbarController(
     private val store: BrowserStore,
     private val tabsUseCases: TabsUseCases,
