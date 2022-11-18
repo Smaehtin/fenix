@@ -37,11 +37,11 @@ open class OnSwipeTouchListener(ctx: Context?) : View.OnTouchListener {
             return true
         }
 
-        override fun onLongPress(e: MotionEvent?) {
+        override fun onLongPress(e: MotionEvent) {
             onLongPress()
         }
 
-        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
             onClick()
             return super.onSingleTapConfirmed(e)
         }
