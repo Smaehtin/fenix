@@ -33,8 +33,6 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -1204,24 +1202,19 @@ abstract class BaseBrowserFragment :
      */
     protected open fun removeSessionIfNeeded(): Boolean {
         getCurrentTab()?.let { session ->
-            if (session.source is SessionState.Source.External && !session.restored) {
+            return if (session.source is SessionState.Source.External && !session.restored) {
                 activity?.finish()
                 requireComponents.useCases.tabsUseCases.removeTab(session.id)
+                true
             } else {
-                homeViewModel.sessionToDelete = session.id
-
-                val previousTab = requireComponents.core.store.state.tabs
-                    .asSequence()
-                    .filter { it.id != session.id }
-                    .sortedByDescending { it.lastAccess }
-                    .firstOrNull()
-
-                previousTab?.let {
-                    homeViewModel.tabToSelect = it.id
+                val hasParentSession = session is TabSessionState && session.parentId != null
+                if (hasParentSession) {
+                    requireComponents.useCases.tabsUseCases.removeTab(session.id, selectParentIfExists = true)
                 }
+                // We want to return to home if this session didn't have a parent session to select.
+                val goToOverview = !hasParentSession
+                !goToOverview
             }
-
-            true
         }
         return false
     }
@@ -1406,6 +1399,11 @@ abstract class BaseBrowserFragment :
         binding.swipeRefresh.isEnabled = shouldPullToRefreshBeEnabled(inFullScreen)
     }
 
+    @CallSuper
+    internal open fun onUpdateToolbarForConfigurationChange(toolbar: BrowserToolbarView) {
+        toolbar.dismissMenu()
+    }
+
     /*
      * Dereference these views when the fragment view is destroyed to prevent memory leaks
      */
@@ -1478,7 +1476,9 @@ abstract class BaseBrowserFragment :
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        _browserToolbarView?.dismissMenu()
+        _browserToolbarView?.let {
+            onUpdateToolbarForConfigurationChange(it)
+        }
     }
 
     // This method is called in response to native web extension messages from
